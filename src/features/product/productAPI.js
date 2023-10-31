@@ -19,6 +19,34 @@ export function createProduct(product) {
   });
 }
 
+export function createCategory(category) {
+  return new Promise(async (resolve) => {
+    const response = await fetch('/categories/', {
+      method: "POST",
+      body: JSON.stringify(category),
+      headers: { 'content-type': 'application/json' },
+    });
+
+    const data = await response.json();
+    resolve({ data });
+  })
+}
+
+
+export function createBrand(brand) {
+  return new Promise(async (resolve) => {
+    const response = await fetch('/brands/', {
+      method: "POST",
+      body: JSON.stringify(brand),
+      headers: { 'content-type': 'application/json' },
+    });
+
+    const data = await response.json();
+    resolve({ data });
+  })
+}
+
+
 export function updateProduct(update) {
   return new Promise(async (resolve) => {
     const response = await fetch(
@@ -52,7 +80,7 @@ export function fetchProductsByFilters(filter, sort, pagination, admin) {
   for (let key in pagination) {
     queryString += `${key}=${pagination[key]}&`;
   }
-  if(admin){
+  if (admin) {
     queryString += `admin=true`;
   }
 
@@ -81,3 +109,4 @@ export function fetchBrands() {
     resolve({ data });
   });
 }
+

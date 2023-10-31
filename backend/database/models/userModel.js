@@ -50,6 +50,7 @@ userSchema.set('toJSON', {
 
 userSchema.methods.comparePassword = async function(textPassword){
     return await bcrypt.compare(textPassword, this.password);
+    // return textPassword === this.password;
 }
 
 userSchema.pre("save", async function(next){
@@ -61,5 +62,6 @@ userSchema.pre("save", async function(next){
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
 })
+
 
 module.exports = mongoose.model("User", userSchema);

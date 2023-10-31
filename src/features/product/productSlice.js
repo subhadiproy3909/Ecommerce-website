@@ -6,6 +6,8 @@ import {
   fetchCategories,
   fetchProductById,
   createProduct,
+  createCategory,
+  createBrand,
   updateProduct,
 } from './productAPI';
 
@@ -57,11 +59,28 @@ export const fetchCategoriesAsync = createAsyncThunk(
 export const createProductAsync = createAsyncThunk(
   'product/create',
   async (product) => {
-    console.log(product);
+    // console.log(product);
     const response = await createProduct(product);
     return response.data;
   }
 );
+
+export const createCategoryAsync = createAsyncThunk(
+  "categories/create",
+  async (category) => {
+    // console.log(category);
+    const response = await createCategory(category);
+    return response.data;
+  }
+)
+export const createBrandAsync = createAsyncThunk(
+  "brands/create",
+  async (brand) => {
+    // console.log(brand);
+    const response = await createBrand(brand);
+    return response.data;
+  }
+)
 
 export const updateProductAsync = createAsyncThunk(
   'product/update',
@@ -70,6 +89,8 @@ export const updateProductAsync = createAsyncThunk(
     return response.data;
   }
 );
+
+
 
 export const productSlice = createSlice({
   name: 'product',
@@ -103,6 +124,23 @@ export const productSlice = createSlice({
         state.status = 'idle';
         state.categories = action.payload;
       })
+
+      .addCase(createCategoryAsync.pending, (state) => {        // create new category. ------------------------>
+        state.status = 'loading';
+      })
+      .addCase(createCategoryAsync.fulfilled, (state, action) => {
+        state.status = 'idle';
+        state.categories = [...state.categories, action.payload];
+      })
+      
+      .addCase(createBrandAsync.pending, (state) => {      // create new brand. ------------------------->
+        state.status = 'loading';
+      })
+      .addCase(createBrandAsync.fulfilled, (state, action) => {
+        state.status = 'idle';
+        state.brands = [...state.brands, action.payload];
+      })
+
       .addCase(fetchProductByIdAsync.pending, (state) => {
         state.status = 'loading';
       })

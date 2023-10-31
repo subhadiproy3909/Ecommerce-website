@@ -1,30 +1,13 @@
-import React, { useState, Fragment, useEffect } from 'react';
+import React, { useState, Fragment, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import {
-  fetchBrandsAsync,
-  fetchCategoriesAsync,
-  fetchProductsByFiltersAsync,
-  selectAllProducts,
-  selectBrands,
-  selectCategories,
-  selectTotalItems,
-} from '../../product/productSlice';
+import { fetchBrandsAsync, fetchCategoriesAsync, fetchProductsByFiltersAsync, createCategoryAsync, createBrandAsync, selectAllProducts, selectBrands, selectCategories, selectTotalItems } from '../../product/productSlice';
 import { Dialog, Disclosure, Menu, Transition } from '@headlessui/react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  StarIcon,
-} from '@heroicons/react/20/solid';
+import { XMarkIcon, ExclamationTriangleIcon, } from '@heroicons/react/24/outline';
+import { ChevronLeftIcon, ChevronRightIcon, StarIcon } from '@heroicons/react/20/solid';
 import { Link } from 'react-router-dom';
-import {
-  ChevronDownIcon,
-  FunnelIcon,
-  MinusIcon,
-  PlusIcon,
-  Squares2X2Icon,
-} from '@heroicons/react/20/solid';
+import { ChevronDownIcon, FunnelIcon, MinusIcon, PlusIcon, Squares2X2Icon } from '@heroicons/react/20/solid';
 import { ITEMS_PER_PAGE } from '../../../app/constants';
+import { useForm } from "react-hook-form"
 
 const sortOptions = [
   { name: 'Best Rating', sort: 'rating', order: 'desc', current: false },
@@ -55,6 +38,15 @@ export default function AdminProductList() {
     },
   ];
 
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+
+  const cancelButtonRef = useRef(null);
+  const [openCategoryModal, setOpenCategoryModal] = useState(false);
+  const [openBrandModal, setOpenBrandModal] = useState(false);
   const [filter, setFilter] = useState({});
   const [sort, setSort] = useState({});
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -92,7 +84,7 @@ export default function AdminProductList() {
 
   useEffect(() => {
     const pagination = { _page: page, _limit: ITEMS_PER_PAGE };
-    dispatch(fetchProductsByFiltersAsync({ filter, sort, pagination, admin:true }));
+    dispatch(fetchProductsByFiltersAsync({ filter, sort, pagination, admin: true }));
   }, [dispatch, filter, sort, page]);
 
   useEffect(() => {
@@ -204,7 +196,248 @@ export default function AdminProductList() {
                   >
                     Add New Product
                   </Link>
+
+                  <button
+                    onClick={() => setOpenCategoryModal(true)}
+                    className="rounded-md mx-10 my-5 bg-green-700 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                  >
+                    Add Category
+                  </button>
+
+                  <button
+                    onClick={() => setOpenBrandModal(true)}
+                    className="rounded-md mx-10 my-5 bg-green-700 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                  >
+                    Add Brand
+                  </button>
                 </div>
+
+                {/* Modal to add new category and brand. */}
+                <Transition.Root show={openCategoryModal} as={Fragment}>
+                  <Dialog as="div" className="relative z-10" initialFocus={cancelButtonRef} onClose={setOpenCategoryModal}>
+                    <Transition.Child
+                      as={Fragment}
+                      enter="ease-out duration-300"
+                      enterFrom="opacity-0"
+                      enterTo="opacity-100"
+                      leave="ease-in duration-200"
+                      leaveFrom="opacity-100"
+                      leaveTo="opacity-0"
+                    >
+                      <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+                    </Transition.Child>
+
+                    <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
+                      <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                        <Transition.Child
+                          as={Fragment}
+                          enter="ease-out duration-300"
+                          enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                          enterTo="opacity-100 translate-y-0 sm:scale-100"
+                          leave="ease-in duration-200"
+                          leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+                          leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                        >
+                          <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                            <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                              <div className="sm:flex sm:items-start">
+                                <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                                  <ExclamationTriangleIcon className="h-6 w-6 text-red-600" aria-hidden="true" />
+                                </div>
+                                <div className="mt-1 w-96 sm:ml-4 sm:mt-0 sm:text-left">
+                                  <Dialog.Title as="h3" className="text-base font-semibold leading-6 text-gray-900">
+                                    Add New Category.
+                                  </Dialog.Title>
+                                  <div className="mt-2">
+                                    <div className="mt-5 sm:mx-auto sm:w-full sm:max-w-sm">
+                                      <form className=" min-w-full"
+                                        onSubmit={handleSubmit((data) => {
+                                          dispatch(
+                                            createCategoryAsync({
+                                              value: data.categoryValue,
+                                              label: data.categoryLabel,
+                                            })
+                                          )
+                                        })}
+                                      >
+                                        <div className='flex gap-2'>
+                                          <div>
+                                            <label htmlFor="categoryValue" className="block text-sm font-medium leading-6 text-gray-900">
+                                              Value
+                                            </label>
+                                            <div className="mt-2">
+                                              <input
+                                                id="categoryValue"
+                                                {...register('categoryValue')}
+                                                type="text"
+                                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                              />
+                                            </div>
+                                          </div>
+
+                                          <div>
+                                            <div className="flex items-center justify-between">
+                                              <label htmlFor="categoryLabel" className="block text-sm font-medium leading-6 text-gray-900">
+                                                Label
+                                              </label>
+                                            </div>
+                                            <div className="mt-2">
+                                              <input
+                                                id="categoryLabel"
+                                                {...register('categoryLabel')}
+                                                type="text"
+                                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                              />
+                                            </div>
+                                          </div>
+                                        </div>
+
+                                        <div className="bg-gray-50 mt-3 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                                          <button
+                                            type="submit"
+                                            className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
+                                          // onClick={() => setOpenCategoryModal(false)}
+                                          >
+                                            Create Category
+                                          </button>
+                                          <button
+                                            type="button"
+                                            className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+                                            onClick={() => setOpenCategoryModal(false)}
+                                            ref={cancelButtonRef}
+                                          >
+                                            Cancel
+                                          </button>
+                                        </div>
+
+                                      </form>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </Dialog.Panel>
+                        </Transition.Child>
+                      </div>
+                    </div>
+                  </Dialog>
+                </Transition.Root>
+
+                <Transition.Root show={openBrandModal} as={Fragment}>
+                  <Dialog as="div" className="relative z-10" initialFocus={cancelButtonRef} onClose={setOpenBrandModal}>
+                    <Transition.Child
+                      as={Fragment}
+                      enter="ease-out duration-300"
+                      enterFrom="opacity-0"
+                      enterTo="opacity-100"
+                      leave="ease-in duration-200"
+                      leaveFrom="opacity-100"
+                      leaveTo="opacity-0"
+                    >
+                      <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+                    </Transition.Child>
+
+                    <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
+                      <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                        <Transition.Child
+                          as={Fragment}
+                          enter="ease-out duration-300"
+                          enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                          enterTo="opacity-100 translate-y-0 sm:scale-100"
+                          leave="ease-in duration-200"
+                          leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+                          leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                        >
+                          <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                            <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                              <div className="sm:flex sm:items-start">
+                                <div className="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                                  <ExclamationTriangleIcon className="h-6 w-6 text-red-600" aria-hidden="true" />
+                                </div>
+                                <div className="mt-1 w-96 sm:ml-4 sm:mt-0 sm:text-left">
+                                  <Dialog.Title as="h3" className="text-base font-semibold leading-6 text-gray-900">
+                                    Add New Brand.
+                                  </Dialog.Title>
+                                  <div className="mt-2">
+                                    <div className="mt-5 sm:mx-auto sm:w-full sm:max-w-sm">
+                                      <form className=" min-w-full"
+                                        onSubmit={handleSubmit((data) => {
+                                          dispatch(
+                                            createBrandAsync({
+                                              value: data.brandValue,
+                                              label: data.brandLabel,
+                                            })
+                                          )
+                                        })}
+                                      >
+                                        <div className='flex gap-2'>
+                                          <div>
+                                            <label htmlFor="brandValue" className="block text-sm font-medium leading-6 text-gray-900">
+                                              Value
+                                            </label>
+                                            <div className="mt-2">
+                                              <input
+                                                id="brandValue"
+                                                {...register('brandValue')}
+                                                type="text"
+                                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                              />
+                                            </div>
+                                          </div>
+
+                                          <div>
+                                            <div className="flex items-center justify-between">
+                                              <label htmlFor="brandLabel" className="block text-sm font-medium leading-6 text-gray-900">
+                                                Label
+                                              </label>
+                                            </div>
+                                            <div className="mt-2">
+                                              <input
+                                                id="brandLabel"
+                                                {...register('brandLabel')}
+                                                type="text"
+                                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                              />
+                                            </div>
+                                          </div>
+
+                                        </div>
+
+                                        <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                                          <button
+                                            type="submit"
+                                            className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
+                                            // onClick={() => setOpenBrandModal(false)}
+                                          >
+                                            Create Brand
+                                          </button>
+                                          <button
+                                            type="button"
+                                            className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+                                            onClick={() => setOpenBrandModal(false)}
+                                            ref={cancelButtonRef}
+                                          >
+                                            Cancel
+                                          </button>
+                                        </div>
+
+                                      </form>
+                                    </div>
+
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                          </Dialog.Panel>
+                        </Transition.Child>
+                      </div>
+                    </div>
+                  </Dialog>
+                </Transition.Root>
+
+
+
                 <ProductGrid products={products}></ProductGrid>
               </div>
               {/* Product grid end */}
@@ -452,11 +685,10 @@ function Pagination({ page, setPage, handlePage, totalItems }) {
                 key={index}
                 onClick={(e) => handlePage(index + 1)}
                 aria-current="page"
-                className={`relative cursor-pointer z-10 inline-flex items-center ${
-                  index + 1 === page
-                    ? 'bg-indigo-600 text-white'
-                    : 'text-gray-400'
-                } px-4 py-2 text-sm font-semibold  focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600`}
+                className={`relative cursor-pointer z-10 inline-flex items-center ${index + 1 === page
+                  ? 'bg-indigo-600 text-white'
+                  : 'text-gray-400'
+                  } px-4 py-2 text-sm font-semibold  focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600`}
               >
                 {index + 1}
               </div>
@@ -523,11 +755,11 @@ function ProductGrid({ products }) {
                       <p className="text-sm text-red-400">product deleted</p>
                     </div>
                   )}
-                  {product.stock<=0 && (
-                  <div>
-                    <p className="text-sm text-red-400">out of stock</p>
-                  </div>
-                )}
+                  {product.stock <= 0 && (
+                    <div>
+                      <p className="text-sm text-red-400">out of stock</p>
+                    </div>
+                  )}
                 </div>
               </Link>
               <div className="mt-5">

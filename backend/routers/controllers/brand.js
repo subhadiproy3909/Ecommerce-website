@@ -7,8 +7,9 @@ const Brand = require('../../database/models/brandModel');
 
 const createBrand = async (req, res) =>{
     try {
+        console.log(req.body);
         const data = await Brand.create(req.body);
-
+        
         if(data){
             res.status(200).json(data);
         }
@@ -19,7 +20,7 @@ const createBrand = async (req, res) =>{
 
 const fetchBrands = async(req, res) =>{
     try{
-        const brands = await Brand.find({}).populate('Product', 'brand');
+        const brands = await Brand.find({});
     
         res.send(brands);
     }

@@ -8,8 +8,8 @@ export default function ResetPassword() {
   const passwordReset = useSelector(selectPasswordReset);
   const error = useSelector(selectError)
   const query = new URLSearchParams(window.location.search);
-  const token = query.get('token')
-  const email = query.get('email')
+  let token = query.get('token')
+  let email = query.get('email')
 
   const dispatch = useDispatch()
   const {
@@ -18,8 +18,8 @@ export default function ResetPassword() {
     formState: { errors },
   } = useForm();
 
-  console.log(errors);
-  console.log(email, token)
+  // console.log(errors);
+  // console.log(email, token)
 
   return (
     <>
@@ -39,7 +39,6 @@ export default function ResetPassword() {
           <form
             noValidate
             onSubmit={handleSubmit((data) => {
-              console.log(data);
               dispatch(resetPasswordAsync({email, token, password:data.password}))
               
             })}
@@ -103,7 +102,8 @@ export default function ResetPassword() {
                 )}
                 {passwordReset && (
                   <p className="text-green-500">Password Reset</p>
-                )}
+                )} 
+
                 {error && (
                   <p className="text-red-500">{error}</p>
                 )}

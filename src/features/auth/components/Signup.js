@@ -41,14 +41,14 @@ export default function Signup() {
                   username: data.username,
                   email: data.email,
                   password: data.password,
-                  role:'user'
+                  role: 'user'
                 })
               );
             })}
           >
             <div>
               <label
-                htmlFor="email"
+                htmlFor="username"
                 className="block text-sm font-medium leading-6 text-gray-900"
               >
                 Username
@@ -80,7 +80,7 @@ export default function Signup() {
               >
                 Email address
               </label>
-              
+
               <div className="mt-2">
                 <input
                   id="email"

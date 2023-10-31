@@ -7,7 +7,7 @@ const auth = require('../middlewares/authMiddleware');
 router.get('/', auth, async (req, res) => {
     try {
 
-        console.log(`cart user id: ${req.user}`);
+        // console.log(`cart user id: ${req.user}`);
 
         const cart = await Cart.find({ user: req.user }).populate('user', "id email addresses").populate("product");
 

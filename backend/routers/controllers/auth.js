@@ -1,5 +1,10 @@
+const crypto = require('crypto');
+
+
 const User = require('../../database/models/userModel');
+// const Order = require('../../database/models/orderModel');
 const generateToken = require('../../database/dbconfig/tokenCreation');
+const sendMail = require('../../services/commonServices');
 
 
 const createUser = async (req, res) => {
@@ -51,7 +56,7 @@ const loginUser = async (req, res) => {
 const checkAuth = async (req, res) => {
     try {
         
-        if (req.cookies) {
+        if (req.cookies["jwt"]) {
             const user = await User.findOne(req.user);
             res.status(200).json({id: user.id, addresses: user.addresses, email: user.email, role: user.role});
         }
@@ -79,4 +84,62 @@ const logout = async (req, res) =>{
     }
 }
 
-module.exports = { createUser, loginUser, checkAuth, logout };
+
+const resetPasswordRequest = async (req, res) => {
+    const {email} = req.body;
+    const user = await User.findOne({email});
+
+    if(user){
+        const token = crypto.randomBytes(48).toString('hex');
+
+        user.resetPasswordToken = token;
+        await user.save();
+
+        const resetPage = `http://localhost:3000/reset-password?token=${token}&email=${req.body.email}`;
+        const subject = `Reset password for E-commerce throught gmail: ${req.body.email}`;
+        const html = `<p> Click below link to reset password</p>
+        <a href='${resetPage}'> Reset Password Link </a>`
+    
+        const text="this a password reset link";
+    
+        try{
+    
+            if(email){
+                const response = await sendMail({email, subject, html});
+                res.json(response);
+            }
+        }
+        catch(err){
+            console.log(`reset password request error: ${err.message}`);
+        }
+    }
+    else{
+        res.json({message: "user not found"});
+    }
+
+}
+
+const resetPassword = async (req, res) =>{
+    try{
+        const {email, token, password} = req.body;
+        // console.log(password);
+
+        const user = await User.findOne({email: email, resetPasswordToken: token});
+        
+        // console.log(user)
+        if(user){
+            user.password = password;
+            user.resetPasswordToken = "";
+            const data = await user.save();
+            res.json(data.email);
+        }
+        else{
+            res.sendStatus(401);
+        }
+    }
+    catch(error){
+        console.log(`reset password error: ${error.message}`);
+    }
+}
+
+module.exports = { createUser, loginUser, checkAuth, logout, resetPasswordRequest, resetPassword };

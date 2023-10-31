@@ -1,5 +1,6 @@
 const Order = require('../../database/models/orderModel');
 const Product = require('../../database/models/product');
+const {sendMail, invoiceTemplate} = require('../../services/commonServices');
 
 
 const createOrder = async (req, res) => {
@@ -10,14 +11,17 @@ const createOrder = async (req, res) => {
         const data = await Order.create(order);
         console.log(`order id: ${data}`);
 
+        let mailingProduct
         for(let item of order.items){
             let product = await Product.findOne({_id: item.product.id});
             product.$inc('stock', -1*item.quantity);
-
+            mailingProduct = product.title;
             await product.save();
         }
 
         if(data){
+            const email = data.populate('user', "email");
+            sendMail({email: email, subject: `Order ID: ${data.id} for ${mailingProduct} thank you.`, html: invoiceTemplate(data)});
             res.json(data);
         }
         else{
